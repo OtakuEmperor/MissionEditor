@@ -2,119 +2,159 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
 from tkinter import Menu
+from tkinter import font
+
+
+helv36 = font.Font(family='Helvetica', size=36, weight=font.BOLD)
+nowSelectRow = 0
+nowSelectCol = 0
+missionList = []
+
+def SaveSetting():
+    global mighty
+    global nowSelectCol
+    global nowSelectRow
+    missionList[nowSelectCol][nowSelectRow].SetName(missionName.get())
+    if(missionList[nowSelectCol][nowSelectRow].UIText == None):
+        missionText = tk.Label(mighty,
+         text = missionList[nowSelectCol][nowSelectRow].name,
+         bg="white",
+         width=2, height=1
+         )
+        missionText.grid(row =nowSelectRow,column = nowSelectCol)
+        missionList[nowSelectCol][nowSelectRow].UIText = missionText
+    else:
+        missionList[nowSelectCol][nowSelectRow].UIText['text']=missionList[nowSelectCol][nowSelectRow].name
+
+
+class SingleMission(object):
+    """docstring for SingleMission"""
+    UILabel = None
+    UIText = None
+    posRow = 0
+    posCol = 0
+    name = "1"
+    def __init__(self, col, row):
+        self.posCol = col
+        self.posRow = row
+        super(SingleMission, self).__init__()
+    def SetName(self,nameInput ):
+        self.name = nameInput
+        
+
+test = 0
 
 # Create instance
 win = tk.Tk()   
 
 # Add a title       
-win.title("Python GUI")  
+win.title("任務編輯器")  
+win.geometry("600x600")
 
-tabControl = ttk.Notebook(win)          # Create Tab Control
+tabControl = ttk.Frame(win)          # Create Tab Control
 
 tab1 = ttk.Frame(tabControl)            # Create a tab 
-tabControl.add(tab1, text='Tab 1')      # Add the tab
-tab2 = ttk.Frame(tabControl)            # Add a second tab
-tabControl.add(tab2, text='Tab 2')      # Make second tab visible
-
-tabControl.pack(expand=1, fill="both")  # Pack to make visible
-
-# LabelFrame using tab1 as the parent
-mighty = ttk.LabelFrame(tab1, text=' Mighty Python ')
-mighty.grid(column=0, row=0, padx=8, pady=4)
-
-# Modify adding a Label using mighty as the parent instead of win
-a_label = ttk.Label(mighty, text="Enter a name:")
-a_label.grid(column=0, row=0, sticky='W')
-
-# Modified Button Click Function
-def click_me(): 
-    action.configure(text='Hello ' + name.get() + ' ' + 
-                     number_chosen.get())
-
-# Adding a Textbox Entry widget
-name = tk.StringVar()
-name_entered = ttk.Entry(mighty, width=12, textvariable=name)
-name_entered.grid(column=0, row=1, sticky='W')               # align left/West
-
-# Adding a Button
-action = ttk.Button(mighty, text="Click Me!", command=click_me)   
-action.grid(column=2, row=1)                                
-
-# Creating three checkbuttons
-ttk.Label(mighty, text="Choose a number:").grid(column=1, row=0)
-number = tk.StringVar()
-number_chosen = ttk.Combobox(mighty, width=12, textvariable=number, state='readonly')
-number_chosen['values'] = (1, 2, 4, 42, 100)
-number_chosen.grid(column=1, row=1)
-number_chosen.current(0)
-
-chVarDis = tk.IntVar()
-check1 = tk.Checkbutton(mighty, text="Disabled", variable=chVarDis, state='disabled')
-check1.select()
-check1.grid(column=0, row=4, sticky=tk.W)                   
-
-chVarUn = tk.IntVar()
-check2 = tk.Checkbutton(mighty, text="UnChecked", variable=chVarUn)
-check2.deselect()
-check2.grid(column=1, row=4, sticky=tk.W)                   
-
-chVarEn = tk.IntVar()
-check3 = tk.Checkbutton(mighty, text="Enabled", variable=chVarEn)
-check3.deselect()
-check3.grid(column=2, row=4, sticky=tk.W)                     
-
-# GUI Callback function 
-def checkCallback(*ignoredArgs):
-    # only enable one checkbutton
-    if chVarUn.get(): check3.configure(state='disabled')
-    else:             check3.configure(state='normal')
-    if chVarEn.get(): check2.configure(state='disabled')
-    else:             check2.configure(state='normal') 
-
-# trace the state of the two checkbuttons
-chVarUn.trace('w', lambda unused0, unused1, unused2 : checkCallback())    
-chVarEn.trace('w', lambda unused0, unused1, unused2 : checkCallback())   
+tab1.grid(column=0, row=0,sticky=tk.NW)    # Add the tab
+tab2 = ttk.Frame(tabControl)            # Create a tab 
+tab2.grid(column=1, row=0,sticky=tk.NE)
+tabControl.pack(expand=1, fill="both")
+setPanel = ttk.Frame(tabControl)
+setPanel.grid(column=0,row=1,sticky=tk.SW)
 
 
-# Using a scrolled Text control    
-scrol_w  = 30
-scrol_h  =  3
-scr = scrolledtext.ScrolledText(mighty, width=scrol_w, height=scrol_h, wrap=tk.WORD)
-scr.grid(column=0, row=5, sticky='WE', columnspan=3)                    
 
+def ClickLabel( col, row ):
+    global nowSelectCol
+    global nowSelectRow
+    nowSelectCol = col
+    nowSelectRow = row
+    SetLabelBKHighLight(col,row)
+    print(str(nowSelectCol) + " : " + str(nowSelectRow))
 
-# First, we change our Radiobutton global variables into a list
-colors = ["Blue", "Gold", "Red"]   
+def ClickArrow( type ):
+    if(type == "up"):
+        missionList[nowSelectCol][nowSelectRow].UILabel.config(text="↑",fg="green")
 
-# We have also changed the callback function to be zero-based, using the list 
-# instead of module-level global variables 
-# Radiobutton Callback
-def radCall():
-    radSel=radVar.get()
-    if   radSel == 0: win.configure(background=colors[0])  # zero-based
-    elif radSel == 1: win.configure(background=colors[1])  # using list
-    elif radSel == 2: win.configure(background=colors[2])
+def SetLabelBKHighLight ( col, row):
 
-# create three Radiobuttons using one variable
-radVar = tk.IntVar()
+    for i in range(len(missionList)):
+        for j in range(len(missionList[i])):
+            if(i == col and j == row):
+                missionList[i][j].UILabel.config(bg="red")
+            else:
+                missionList[i][j].UILabel.config(bg="black")
+#======================
+# B Panel
+#======================
+mighty = ttk.LabelFrame(tab1, text=' 任務預覽 ')
+mighty.grid(column=0, row=0)
+for x in range(7):
+    missionList2 = []
+    for y in range(14):
+        missionBK = tk.Label(mighty,
+         bg="black",
+         width=5, height=2,
+         borderwidth=2, relief="groove",
+         font=helv36
+         )
+        missionBK.grid(row =y,column = x)
+        missionBK.bind("<Button-1>", lambda e,tx=x,ty=y:ClickLabel(tx, ty))
 
-# Next we are selecting a non-existing index value for radVar
-radVar.set(99)                                 
+        # missionText = tk.Label(mighty,
+        #  text ="",
+        #  bg="white",
+        #  width=0, height=0
+        #  )
+        # missionText.grid(row =y,column = x)
 
-# Now we are creating all three Radiobutton widgets within one loop
-for col in range(3):                             
-    curRad = tk.Radiobutton(mighty, text=colors[col], variable=radVar, 
-                            value=col, command=radCall)          
-    curRad.grid(column=col, row=5, sticky=tk.W)             # row=5 ... SURPRISE!
+        singleMission = SingleMission(x,y)
+        singleMission.UILabel = missionBK
+        missionList2.append((singleMission))    
+    missionList.append(missionList2)
 
-# Create a container to hold labels
-buttons_frame = ttk.LabelFrame(mighty, text=' Labels in a Frame ')
-buttons_frame.grid(column=0, row=7)        
+missionEditor = ttk.LabelFrame(tab2, text=' 任務編輯 ')
+missionEditor.grid(column=0, row=0)
+missionNameLabel = ttk.Label(missionEditor, text="任務名稱")
+missionNameLabel.grid(column=0)
+missionName = tk.StringVar()
+missionNameEntered = ttk.Entry(missionEditor, width=12, textvariable=missionName)
+missionNameEntered.grid(column=1,row=0)
 
-# Place labels into the container element
-ttk.Label(buttons_frame, text="Label1").grid(column=0, row=0, sticky=tk.W)
-ttk.Label(buttons_frame, text="Label2").grid(column=1, row=0, sticky=tk.W)
-ttk.Label(buttons_frame, text="Label3").grid(column=2, row=0, sticky=tk.W)
+arrowButtonPanel = ttk.LabelFrame(tab2, text=' 方向按鈕 ')
+arrowButtonPanel.grid(column = 0,row=1)
+upButton = ttk.Button(
+    arrowButtonPanel,
+    text = '↑',
+    width = 1,
+    command=lambda :ClickArrow("up")
+    )
+upButton.grid(column=0, row = 0)
+downButton = ttk.Button(
+    arrowButtonPanel,
+    text = '↓',
+    width = 1
+    )
+downButton.grid(column=1, row = 0)
+leftButton = ttk.Button(
+    arrowButtonPanel,
+    text = '←',
+    width = 1
+    )
+leftButton.grid(column=2, row = 0)
+rightButton = ttk.Button(
+    arrowButtonPanel,
+    text = '→',
+    width = 1
+    )
+rightButton.grid(column=3, row = 0)
+
+confirmSetting = ttk.Button(
+    setPanel,
+    text = '確認',
+    command=SaveSetting)
+confirmSetting.grid(column=0, row = 0)
+
+# controlPanel.pack()
 
 # Exit GUI cleanly
 def _quit():
@@ -138,8 +178,6 @@ help_menu = Menu(menu_bar, tearoff=0)
 help_menu.add_command(label="About")
 menu_bar.add_cascade(label="Help", menu=help_menu)
 
-
-name_entered.focus()      # Place cursor into name Entry
 #======================
 # Start GUI
 #======================
