@@ -51,7 +51,6 @@ def DeclareVar():
 def SaveSetting():
     tmpdata = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol].Data
     tmpdata.name = missionName.get()
-    tmpdata.lineType = missionName.get()
     tmpdata.moveSignObj = MoveSign.get()
     tmpdata.staticSignObj = StaticSig.get()
     tmpdata.missionPre1Obj = missionPre1.get()
@@ -65,6 +64,12 @@ def SaveSetting():
     tmpdata.missionSpecialItemObj = missionSpecialItem.get()
     tmpdata.missionSpecialDesObj = missionSpecialDes.get()
     tmpBox = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol]
+    if(tmpdata.name != ""):
+        if(tmpdata.boxType == 0):
+            tmpdata.boxType == 1
+        if(tmpdata.boxType == 2):
+            tmpdata.boxType == 3
+
     if(tmpBox.UIText == None):
         tmpBox.UIText = tk.Label(mighty,
                                text=tmpBox.Data.name,
@@ -114,7 +119,11 @@ class SingleMission(object):
         super(SingleMission, self).__init__()
 
     def SetLineType(self, lineType):
-        self.lineType = lineType
+        if(self.boxType == 0):
+            self.Data.boxType = 2
+        if(self.boxType == 1):
+            self.Data.boxType = 3
+        self.Data.lineType = lineType
         if(lineType == 1):
             self.UILabel.config(text="│\n│\n", fg="white")
         if(lineType == 3):
@@ -532,13 +541,13 @@ def _quit():
 
 
 def ImportData():
+    everyTypeContaionsPage[0].append(0)
+    allMissionBigDict[0][0] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
     with open(fileNmae, newline='',encoding='utf-8', 
         errors='ignore') as inputFile:
         rows = csv.reader(fileNmae)
         for index, row in enumerate(rows):
             if(len(row) < loadingDataLen and index == 0):
-                everyTypeContaionsPage[0].append(0)
-                allMissionBigDict[0][0] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
                 # print(allMissionBigDict[0][0])
                 # for x in range(len(allMissionBigDict[0][0])):
                 #     for y in range(len(allMissionBigDict[0][0][0])):
@@ -578,29 +587,30 @@ def ExportData():
                 for i in range(len(Sdata)):
                     for j in range(len(Sdata[0])):
                         print(Sdata[i][j].Data)
-                        writer.writerow([
-                            exportIDHead,
-                            1,
-                            Bkey,
-                            nowPageStype,
-                            Skey,
-                            ((i)*7)+(j+1),
-                            Sdata[i][j].Data.boxType,
-                            Sdata[i][j].Data.lineType,
-                            Sdata[i][j].Data.name,
-                            Sdata[i][j].Data.moveSignObj,
-                            Sdata[i][j].Data.staticSignObj,
-                            Sdata[i][j].Data.missionPre1Obj,
-                            Sdata[i][j].Data.missionPre2Obj,
-                            Sdata[i][j].Data.missionPre3Obj,
-                            Sdata[i][j].Data.missionNeedLevelObj,
-                            Sdata[i][j].Data.missionSceneIDObj,
-                            Sdata[i][j].Data.missionTeacherNameBeginObj,
-                            Sdata[i][j].Data.missionTeacherXObj,
-                            Sdata[i][j].Data.missionTeacherYObj,
-                            Sdata[i][j].Data.missionSpecialItemObj,
-                            Sdata[i][j].Data.missionSpecialDesObj
-                        ])
+                        if Sdata[i][j].Data.boxType != 0:                      
+                            writer.writerow([
+                                exportIDHead,
+                                1,
+                                Bkey,
+                                nowPageStype,
+                                Skey,
+                                ((i)*7)+(j+1),
+                                Sdata[i][j].Data.boxType,
+                                Sdata[i][j].Data.lineType,
+                                Sdata[i][j].Data.name,
+                                Sdata[i][j].Data.moveSignObj,
+                                Sdata[i][j].Data.staticSignObj,
+                                Sdata[i][j].Data.missionPre1Obj,
+                                Sdata[i][j].Data.missionPre2Obj,
+                                Sdata[i][j].Data.missionPre3Obj,
+                                Sdata[i][j].Data.missionNeedLevelObj,
+                                Sdata[i][j].Data.missionSceneIDObj,
+                                Sdata[i][j].Data.missionTeacherNameBeginObj,
+                                Sdata[i][j].Data.missionTeacherXObj,
+                                Sdata[i][j].Data.missionTeacherYObj,
+                                Sdata[i][j].Data.missionSpecialItemObj,
+                                Sdata[i][j].Data.missionSpecialDesObj
+                            ])
                         exportIDHead += 1
 
 
