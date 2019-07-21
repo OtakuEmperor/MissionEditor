@@ -4,8 +4,14 @@ from tkinter import ttk
 from tkinter import scrolledtext
 from tkinter import Menu
 from tkinter import font
+from enum import Enum
+from enum import IntEnum
+import io
+import sys
 import csv
-
+import math
+sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding="utf8",
+                              line_buffering=True)
 
 desfont = '微軟正黑體 14 bold'
 bkfont = 'Courier\ New 8 bold'
@@ -14,11 +20,11 @@ bkFileName = 'MissionTree'
 
 CONSTGridCol = 7
 CONSTGridRow = 14
+CONSTGPageNumber = 9
 
 loadingDataLen = 21
 
 # 每一個分頁所含的頁數
-everyTypeContaionsPage = [[]] * 10
 
 bigMissionType = [
     "主線",
@@ -32,74 +38,99 @@ bigMissionType = [
     "活動"
 ]
 
-smallMissionType = [1]
+smallMissionType = []
+
+allMissionBigDict = None
+everyTypeContaionsPage = None
+
+missionEditorText = [
+    "定位點索引",
+    "資料型式",
+    "Line樣式",
+    "任務名稱",
+    "動標",
+    "永標",
+    "前置任務索引1",
+    "前置任務索引2",
+    "前置任務索引3",
+    "所需等級",
+    "起始地圖",
+    "起始NPC",
+    "所在座標X",
+    "所在座標Y",
+    "特殊獎勵",
+    "特殊說明"
+]
+
+class MissionEditorIndex (IntEnum):
+    boxPos = 0,
+    boxType = 1,
+    lineType = 2,
+    name = 3,
+    moveSignObj = 4,
+    staticSignObj = 5,
+    missionPre1Obj = 6,
+    missionPre2Obj = 7,
+    missionPre3Obj = 8,
+    missionNeedLevelObj = 9,
+    missionSceneIDObj = 10,
+    missionTeacherNameBeginObj = 11,
+    missionTeacherXObj = 12,
+    missionTeacherYObj = 13,
+    missionSpecialItemObj = 14,
+    missionSpecialDesObj = 15
+
+
+CONSTEditorNumber = len(missionEditorText)
+
+missionEditorLabel = []
+
+missionEditorVar = []
+
+missionEditorDes = []
 
 nowSelectRow = 0
 nowSelectCol = 0
 nowBigPageNumber = 0
 nowSmallPageNumber = 0
-allMissionBigDict = [{}] * 10
+
 missionList = []
 
 exportIDHead = 0
 nowPageStype = 2
 
+
 def DeclareVar():
+    global exportIDHead
+    global nowPageStype
+    global allMissionBigDict
+    global everyTypeContaionsPage
     exportIDHead = 0
     nowPageStype = 2
+    allMissionBigDict = [{} for y in range(CONSTGPageNumber)]
+    everyTypeContaionsPage = [[] for y in range(CONSTGPageNumber)]
 
 def SaveSetting():
     tmpdata = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol].Data
-    tmpdata.name = missionName.get()
-    tmpdata.moveSignObj = MoveSign.get()
-    tmpdata.staticSignObj = StaticSig.get()
-    tmpdata.missionPre1Obj = missionPre1.get()
-    tmpdata.missionPre2Obj = missionPre2.get()
-    tmpdata.missionPre3Obj = missionPre3.get()
-    tmpdata.missionNeedLevelObj = missionNeedLevel.get()
-    tmpdata.missionSceneIDObj = missionMap.get()
-    tmpdata.missionTeacherNameBeginObj = missionStartNpc.get()
-    tmpdata.missionTeacherXObj = missionPosX.get()
-    tmpdata.missionTeacherYObj = missionPosY.get()
-    tmpdata.missionSpecialItemObj = missionSpecialItem.get()
-    tmpdata.missionSpecialDesObj = missionSpecialDes.get()
+    for x in range(CONSTEditorNumber):
+        tmpdata[x] = missionEditorVar[x].get()
     tmpBox = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol]
-    if(tmpdata.name != ""):
-        if(tmpdata.boxType == 0):
-            tmpdata.boxType == 1
-        if(tmpdata.boxType == 2):
-            tmpdata.boxType == 3
-
-    if(tmpBox.UIText == None):
-        tmpBox.UIText = tk.Label(mighty,
-                               text=tmpBox.Data.name,
-                               bg="white",
-                               width=2, height=1
-                               )
-        tmpBox.UIText.grid(row=nowSelectRow, column=nowSelectCol)
-    else:
-        tmpBox.UIText['text'] = tmpBox.name
-
-
-class SingleData(object):
-    name = "1"
-    boxType = 0
-    lineType = 0
-    moveSignObj = 0
-    staticSignObj = 0
-    missionPre1Obj = 0
-    missionPre2Obj = 0
-    missionPre3Obj = 0
-    missionNeedLevelObj = 0
-    missionSceneIDObj = 0
-    missionTeacherNameBeginObj = ""
-    missionTeacherXObj = 0
-    missionTeacherYObj = 0
-    missionSpecialItemObj = ""
-    missionSpecialDesObj = ""
-
-    def __init__(self):
-        super(SingleData, self).__init__()
+    if(tmpdata[MissionEditorIndex.name] != ""):
+        print(tmpdata[MissionEditorIndex.boxType])
+        if(tmpdata[MissionEditorIndex.boxType] == 0):
+            tmpdata[MissionEditorIndex.boxType] = 1
+        if(tmpdata[MissionEditorIndex.boxType] == 2):
+            tmpdata[MissionEditorIndex.boxType] = 3
+        missionEditorDes[MissionEditorIndex.boxType]["text"] = tmpdata[MissionEditorIndex.boxType]
+        if(tmpBox.UIText == None):
+            tmpBox.UIText = tk.Label(mighty,
+                                   text=tmpdata[MissionEditorIndex.name],
+                                   bg="white",
+                                   width=2, height=1
+                                   )
+            tmpBox.UIText.grid(row=nowSelectRow, column=nowSelectCol)
+        else:
+            tmpBox.UIText['text'] = tmpdata[MissionEditorIndex.nam]
 
 
 class SingleMission(object):
@@ -108,22 +139,21 @@ class SingleMission(object):
     UIText = None
     posRow = 0
     posCol = 0
-    posIndex = 0
     Data = None
 
     def __init__(self, row, col):
+        self.Data = [ 0,0,0,"",1,2,3,4,5,6,7,"",8,9,"預設道具","預設描述"]
         self.posCol = col
         self.posRow = row
-        self.posIndex = ((row * 7) + (col + 1))
-        self.Data = SingleData()
-        super(SingleMission, self).__init__()
+        self.Data[0] = ((self.posRow * 7) + (self.posCol + 1))
+        # super(SingleMission, self).__init__()
 
     def SetLineType(self, lineType):
-        if(self.boxType == 0):
-            self.Data.boxType = 2
-        if(self.boxType == 1):
-            self.Data.boxType = 3
-        self.Data.lineType = lineType
+        if(self.Data[MissionEditorIndex.boxType] == 0):
+            self.Data[MissionEditorIndex.boxType] = 2
+        if(self.Data[MissionEditorIndex.boxType] == 1):
+            self.Data[MissionEditorIndex.boxType] = 3
+        self.Data[MissionEditorIndex.lineType]  = lineType
         if(lineType == 1):
             self.UILabel.config(text="│\n│\n", fg="white")
         if(lineType == 3):
@@ -132,22 +162,24 @@ class SingleMission(object):
             self.UILabel.config(text="\n＿＿     \n", fg="white")
         if(lineType == 2):
             self.UILabel.config(text="\n     ＿＿\n", fg="white")
-
-    def SetData(self, dataInput):
-        self.Data.name = dataInput.name
-        self.Data.boxType = dataInput.boxType
-        self.Data.lineType = dataInput.lineType
-        self.Data.moveSignObj = dataInput.moveSignObj
-        self.Data.staticSignObj = dataInput.staticSignObj
-        self.Data.missionPre1Obj = dataInput.missionPre1Obj
-        self.Data.missionPre2Obj = dataInput.missionPre2Obj
-        self.Data.missionPre3Obj = dataInput.missionPre3Obj
-        self.Data.missionNeedLevelObj = dataInput.missionNeedLevelObj
-        self.Data.missionSceneIDObj = dataInput.missionSceneIDObj
-        self.Data.missionTeacherNameBeginObj = dataInput.missionTeacherNameBeginObj
-        self.Data.missionTeacherXObj = dataInput.missionTeacherXObj
-        self.Data.missionTeacherYObj = dataInput.missionTeacherYObj
-        self.Data.missionSpecialDesObj = dataInput.missionSpecialDesObj
+        missionEditorVar[MissionEditorIndex.boxType].set(self.Data[MissionEditorIndex.boxType])
+        missionEditorVar[MissionEditorIndex.lineType].set(self.Data[MissionEditorIndex.lineType])
+        missionEditorDes[MissionEditorIndex.boxType]["text"] = self.Data[MissionEditorIndex.boxType]
+    # def SetData(self, dataInput):
+    #     self.Data.name = dataInput.name
+    #     self.Data.boxType = dataInput.boxType
+    #     self.Data.lineType = dataInput.lineType
+    #     self.Data.moveSignObj = dataInput.moveSignObj
+    #     self.Data.staticSignObj = dataInput.staticSignObj
+    #     self.Data.missionPre1Obj = dataInput.missionPre1Obj
+    #     self.Data.missionPre2Obj = dataInput.missionPre2Obj
+    #     self.Data.missionPre3Obj = dataInput.missionPre3Obj
+    #     self.Data.missionNeedLevelObj = dataInput.missionNeedLevelObj
+    #     self.Data.missionSceneIDObj = dataInput.missionSceneIDObj
+    #     self.Data.missionTeacherNameBeginObj = dataInput.missionTeacherNameBeginObj
+    #     self.Data.missionTeacherXObj = dataInput.missionTeacherXObj
+    #     self.Data.missionTeacherYObj = dataInput.missionTeacherYObj
+    #     self.Data.missionSpecialDesObj = dataInput.missionSpecialDesObj
 
 
 def _from_rgb(rgb):
@@ -185,29 +217,19 @@ def ClickLabel(col, row):
     global nowSelectRow
     nowSelectCol = col
     nowSelectRow = row
-    missionPosIndexDis['text'] = ((row * 7) + (col + 1))
     missionList = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
-    missionBoxTypeDis['text'] = (missionList[nowSelectRow][nowSelectCol].Data.boxType)
-    missionLineTypeDis['text'] = (missionList[nowSelectRow][nowSelectCol].Data.lineType)
-    missionName.set(missionList[nowSelectRow][nowSelectCol].Data.name)
-    MoveSign.set(missionList[nowSelectRow][nowSelectCol].Data.moveSignObj)
-    StaticSig.set(missionList[nowSelectRow][nowSelectCol].Data.staticSignObj)
-    missionPre1.set(missionList[nowSelectRow][nowSelectCol].Data.missionPre1Obj)
-    missionPre2.set(missionList[nowSelectRow][nowSelectCol].Data.missionPre2Obj)
-    missionPre3.set(missionList[nowSelectRow][nowSelectCol].Data.missionPre3Obj)
-    missionNeedLevel.set(missionList[nowSelectRow][nowSelectCol].Data.missionNeedLevelObj)
-    missionMap.set(missionList[nowSelectRow][nowSelectCol].Data.missionSceneIDObj)
-    missionStartNpc.set(missionList[nowSelectRow][nowSelectCol].Data.missionTeacherNameBeginObj)
-    missionPosX.set(missionList[nowSelectRow][nowSelectCol].Data.missionTeacherXObj)
-    missionPosY.set(missionList[nowSelectRow][nowSelectCol].Data.missionTeacherYObj)
-    missionSpecialItem.set(missionList[nowSelectRow][nowSelectCol].Data.missionSpecialItemObj)
-    missionSpecialDes.set(missionList[nowSelectRow][nowSelectCol].Data.missionSpecialDesObj)
+    for x in range(CONSTEditorNumber):
+        if x < 3:
+            missionEditorDes[x]['text'] = str(missionList[nowSelectRow][nowSelectCol].Data[x])
+            missionEditorVar[x].set(missionList[nowSelectRow][nowSelectCol].Data[x])
+        else:
+            missionEditorVar[x].set(missionList[nowSelectRow][nowSelectCol].Data[x])
     SetLabelBKHighLight(row, col)
     # print(missionList[nowSelectRow][nowSelectCol].UILabel.winfo_rootx())
 
 
 def ClickArrow(arrorLinetype):
-    allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectCol][nowSelectRow].SetLineType(arrorLinetype)
+    allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol].SetLineType(arrorLinetype)
 
 
 def SetLabelBKHighLight(row, col):
@@ -227,6 +249,7 @@ def SetLabelBKHighLight(row, col):
 # ======================
 # 任務預覽
 def GentGridPanel():
+    global allMissionBigDict
     tmpDict = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
     # for data in tmpDict:
     for x in range(CONSTGridRow):
@@ -234,6 +257,8 @@ def GentGridPanel():
             print("X is Empty")
             tmpDict[x] = []
         for y in range(CONSTGridCol):
+            if(y == 2 and x == 1):
+                print(tmpDict[x][y])
             if(tmpDict[x][y]==None):
                 tmpDict[x][y] = SingleMission(x, y)
             missionBK = tk.Label(mighty,
@@ -247,169 +272,41 @@ def GentGridPanel():
             missionBK.bind("<Button-1>", lambda e, col=y,
                            row=x: ClickLabel(col, row))
             tmpDict[x][y].UILabel = missionBK
+            if(math.floor(tmpDict[x][y].Data[MissionEditorIndex.boxType] % 2) == 1):
+                tmpDict[x][y].UIText = tk.Label(mighty,
+                                       text=tmpDict[x][y].Data[MissionEditorIndex.name],
+                                       bg="white",
+                                       width=2, height=1
+                                       )
+                tmpDict[x][y].UIText.grid(row=x, column=y)
+            if(tmpDict[x][y].Data[MissionEditorIndex.boxType] > 1 ):
+                tmpDict[x][y].SetLineType(tmpDict[x][y].Data[MissionEditorIndex.lineType])
+
 # ======================
 
 
 missionEditor = ttk.LabelFrame(tab2, text=' 任務編輯 ')
 missionEditor.grid(column=0, row=0)
-# ======================
-# 定位點索引
-missionPosIndexLabel = ttk.Label(missionEditor, text="定位點索引", font=desfont)
-missionPosIndexLabel.grid(column=0, row=0)
-missionPosIndex = tk.StringVar()
-missionPosIndexDis = ttk.Label(
-    missionEditor, text=missionPosIndex, font=desfont)
-missionPosIndexDis.grid(column=1, row=0)
-# ======================
 
-# ======================
-# 資料型式
-missionBoxTypeLabel = ttk.Label(missionEditor, text="資料型式", font=desfont)
-missionBoxTypeLabel.grid(column=0, row=1)
-missionBoxType = tk.StringVar()
-missionBoxTypeDis = ttk.Label(missionEditor, text=missionBoxType, font=desfont)
-missionBoxTypeDis.grid(column=1, row=1)
-# ======================
+for x in range(CONSTEditorNumber):
+    missionEditorLabel.append(
+        ttk.Label(missionEditor, text=missionEditorText[x], font=desfont)
+        )
+    missionEditorLabel[x].grid(column=0, row=x)
+    if( x == 3 or x == 11 or x == 14 or x == 15):
+        missionEditorVar.append(tk.StringVar())
+    else:
+        missionEditorVar.append(tk.IntVar())
+    if x < 3:
+        missionEditorDes.append(ttk.Label(
+        missionEditor, text=missionEditorVar[x], font=desfont))
+        missionEditorDes[x].grid(column=1, row=x)
+    else:
+        missionEditorDes.append(ttk.Entry(
+     missionEditor, width=12, textvariable=missionEditorVar[x], font=desfont)
+    )
+        missionEditorDes[x].grid(column=1, row=x)
 
-# ======================
-# Line樣式
-missionLineTypeLabel = ttk.Label(missionEditor, text="Line樣式", font=desfont)
-missionLineTypeLabel.grid(column=0, row=2)
-missionLineType = tk.StringVar()
-missionLineTypeDis = ttk.Label(
-    missionEditor, text=missionLineType, font=desfont)
-missionLineTypeDis.grid(column=1, row=2)
-# ======================
-
-# ======================
-# 任務名稱
-missionNameLabel = ttk.Label(missionEditor, text="任務名稱", font=desfont)
-missionNameLabel.grid(column=0, row=3)
-missionName = tk.StringVar()
-missionNameEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionName, font=desfont)
-missionNameEntered.grid(column=1, row=3)
-# ======================
-
-# ======================
-# 動標
-missionMoveSignLabel = ttk.Label(missionEditor, text="動標", font=desfont)
-missionMoveSignLabel.grid(column=0, row=4)
-MoveSign = tk.StringVar()
-missionMoveSignEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=MoveSign, font=desfont)
-missionMoveSignEntered.grid(column=1, row=4)
-# ======================
-
-# ======================
-# 永標
-missionStaticSignLabel = ttk.Label(missionEditor, text="永標", font=desfont)
-missionStaticSignLabel.grid(column=0, row=5)
-StaticSig = tk.StringVar()
-missionStaticSignEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=StaticSig, font=desfont)
-missionStaticSignEntered.grid(column=1, row=5)
-# ======================
-
-# ======================
-# 前置任務索引1
-missionPre1Label = ttk.Label(missionEditor, text="前置任務索引1", font=desfont)
-missionPre1Label.grid(column=0, row=6)
-missionPre1 = tk.StringVar()
-missionPre1Entered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionPre1, font=desfont)
-missionPre1Entered.grid(column=1, row=6)
-# ======================
-
-# ======================
-# 前置任務索引2
-missionPre2Label = ttk.Label(missionEditor, text="前置任務索引2", font=desfont)
-missionPre2Label.grid(column=0, row=7)
-missionPre2 = tk.StringVar()
-missionPre2Entered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionPre2, font=desfont)
-missionPre2Entered.grid(column=1, row=7)
-# ======================
-
-# ======================
-# 前置任務索引3
-missionPre3Label = ttk.Label(missionEditor, text="前置任務索引3", font=desfont)
-missionPre3Label.grid(column=0, row=8)
-missionPre3 = tk.StringVar()
-missionPre3Entered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionPre3, font=desfont)
-missionPre3Entered.grid(column=1, row=8)
-# ======================
-
-# ======================
-# 所需等級
-missionNeedLevelLabel = ttk.Label(missionEditor, text="所需等級", font=desfont)
-missionNeedLevelLabel.grid(column=0, row=9)
-missionNeedLevel = tk.StringVar()
-missionNeedLevelEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionNeedLevel, font=desfont)
-missionNeedLevelEntered.grid(column=1, row=9)
-# ======================
-
-# ======================
-# 起始地圖
-missionMapLabel = ttk.Label(missionEditor, text="起始地圖", font=desfont)
-missionMapLabel.grid(column=0, row=10)
-missionMap = tk.StringVar()
-missionMapEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionMap, font=desfont)
-missionMapEntered.grid(column=1, row=10)
-# ======================
-
-# ======================
-# 起始NPC
-missionStartNpcLabel = ttk.Label(missionEditor, text="起始NPC", font=desfont)
-missionStartNpcLabel.grid(column=0, row=11)
-missionStartNpc = tk.StringVar()
-missionStartNpcEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionStartNpc, font=desfont)
-missionStartNpcEntered.grid(column=1, row=11)
-# ======================
-
-# ======================
-# 所在座標X
-missionPosXLabel = ttk.Label(missionEditor, text="所在座標X", font=desfont)
-missionPosXLabel.grid(column=0, row=12)
-missionPosX = tk.StringVar()
-missionPosXEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionPosX, font=desfont)
-missionPosXEntered.grid(column=1, row=12)
-# ======================
-
-# ======================
-# 所在座標Y
-missionPosYLabel = ttk.Label(missionEditor, text="所在座標Y", font=desfont)
-missionPosYLabel.grid(column=0, row=13)
-missionPosY = tk.StringVar()
-missionPosYEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionPosY, font=desfont)
-missionPosYEntered.grid(column=1, row=13)
-# ======================
-
-# ======================
-# 特殊獎勵
-missionSpecialItemLabel = ttk.Label(missionEditor, text="特殊獎勵", font=desfont)
-missionSpecialItemLabel.grid(column=0, row=14)
-missionSpecialItem = tk.StringVar()
-missionSpecialItemEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionSpecialItem, font=desfont)
-missionSpecialItemEntered.grid(column=1, row=14)
-# ======================
-
-# ======================
-# 特殊說明
-missionSpecialDesLabel = ttk.Label(missionEditor, text="特殊說明", font=desfont)
-missionSpecialDesLabel.grid(column=0, row=15)
-missionSpecialDes = tk.StringVar()
-missionSpecialDesEntered = ttk.Entry(
-    missionEditor, width=12, textvariable=missionSpecialDes, font=desfont)
-missionSpecialDesEntered.grid(column=1, row=15)
-# ======================
 
 arrowButtonPanel = ttk.LabelFrame(tab2, text=' 方向按鈕 ')
 arrowButtonPanel.grid(column=0, row=1)
@@ -492,46 +389,110 @@ crossButton = ttk.Button(
 crossButton.grid(column=2, row=2)
 
 confirmSetting = ttk.Button(
-    setPanel,
+    arrowButtonPanel,
     text='確認',
     command=SaveSetting)
-confirmSetting.grid(column=0, row=0)
+confirmSetting.grid(column=0, row=5)
 
+missionBigTypeDropdown = None
+missionSmaillTypeDropdown = None
+def GenPageSelectPanel ():
+    global missionBigType
+    global missionBigTypeDropdown
+    global missionSmaillTypeDropdown
+    # ======================
+    # 任務類型選擇
+    missionBigType = tk.StringVar(win)
+    missionBigType.set(bigMissionType[0])  # default value
+    missionBigTypeLabel = ttk.Label(pageSettingTab, text="任務類型選擇", font=desfont)
+    missionBigTypeLabel.grid(column=0, row=0)
+    missionBigTypeDropdown = ttk.Combobox(pageSettingTab, textvariable=missionBigType, 
+         state='readonly')
+    missionBigTypeDropdown['value'] = bigMissionType
+    missionBigTypeDropdown.bind("<<ComboboxSelected>>", ChangeBigType)
+    missionBigTypeDropdown.config(width=12)
+    missionBigTypeDropdown.grid(column=1, row=0, sticky="n")
+    # ======================
 
-# ======================
-# 任務類型選擇
-missionBigType = tk.StringVar(win)
-missionBigType.set(bigMissionType[0])  # default value
-missionBigTypeLabel = ttk.Label(pageSettingTab, text="任務類型選擇", font=desfont)
-missionBigTypeLabel.grid(column=0, row=0)
-missionBigTypeDropdown = ttk.OptionMenu(
-    pageSettingTab, missionBigType, *bigMissionType)
-missionBigTypeDropdown.config(width=12)
-missionBigTypeDropdown.grid(column=1, row=0, sticky="n")
-# ======================
+    global missionSmaillType
+    # ======================
+    # 分頁頁碼選擇
+    missionSmaillType = tk.IntVar(win)
+    missionSmaillType.set(smallMissionType[0])  # default value
+    missionSmaillTypeLabel = ttk.Label(pageSettingTab, text="分頁頁碼選擇", font=desfont)
+    missionSmaillTypeLabel.grid(column=0, row=1)
+    missionSmaillTypeDropdown = ttk.Combobox(pageSettingTab, textvariable=smallMissionType[0], 
+                                    state='readonly')
+    missionSmaillTypeDropdown['values'] = smallMissionType
+    missionSmaillTypeDropdown.current(0)
+    missionSmaillTypeDropdown.config(width=12)
+    missionSmaillTypeDropdown.bind("<<ComboboxSelected>>", ChangeBigType)
+    missionSmaillTypeDropdown.grid(column=1, row=1, sticky="n")
+    # ======================
 
-# ======================
-# 分頁頁碼選擇
-missionSmaillType = tk.StringVar(win)
-missionSmaillType.set(smallMissionType[0])  # default value
-missionSmaillTypeLabel = ttk.Label(pageSettingTab, text="分頁頁碼選擇", font=desfont)
-missionSmaillTypeLabel.grid(column=0, row=1)
-missionSmaillTypeDropdown = ttk.OptionMenu(
-    pageSettingTab, missionSmaillType, *smallMissionType)
-missionSmaillTypeDropdown.config(width=12)
-missionSmaillTypeDropdown.grid(column=1, row=1, sticky="n")
-# ======================
+def ChangeBigType(event):
+    global missionBigTypeDropdown
+    nowNumber = bigMissionType.index(missionBigTypeDropdown.get())
+    nowBigPageNumber = nowNumber
+    if(len(everyTypeContaionsPage[nowBigPageNumber]) > 0):
+        nowSmallPageNumber = everyTypeContaionsPage[nowBigPageNumber][0]
+    else:
+        nowSmallPageNumber = 0
+    if(allMissionBigDict[nowBigPageNumber][nowSmallPageNumber] == None):
+        allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]=[[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
+    mighty.destroy()
+    GentGridPanel()
+    # allMissionBigDict
+    # everyTypeContaionsPage
+    # [nowBigPageNumber][nowSmallPageNumber]
 
 # ======================
 # 新增小頁籤按鈕
+
+nowPopupWindow = None
+popTop = None
+popLabel = None
+popEntry = None
+popButton = None
+
+def popupWindow (master):
+    global popTop
+    global popEntry
+    popTop=tk.Toplevel(master)
+    popLabel=ttk.Label(popTop,text="要新增的頁籤")
+    popLabel.pack()
+    popEntry=ttk.Entry(popTop)
+    popEntry.pack()
+    popButton=ttk.Button(popTop,text='確認',command=cleanup)
+    popButton.pack()
+
+def cleanup():
+    global popTop
+    global popEntry
+    reflashComboBox(popEntry.get())
+    popTop.destroy()
+
+def popup( ):
+    global popTop
+    nowPopupWindow=popupWindow(pageSettingTab)
+    confirmSetting["state"] = "disabled" 
+    pageSettingTab.wait_window(popTop)
+    confirmSetting["state"] = "normal"
+
+def entryValue():
+    return nowPopupWindow.value
+
+def reflashComboBox ( typein ):
+    global missionSmaillTypeDropdown
+    smallMissionType.append(typein)
+    missionSmaillTypeDropdown['values'] = smallMissionType
+
 confirmSetting = ttk.Button(
     pageSettingTab,
     text='新增小頁籤',
-    command=SaveSetting)
+    command=popup)
 confirmSetting.grid(column=0, row=2)
 # ======================
-
-# Exit GUI cleanly
 
 
 def _quit():
@@ -541,40 +502,47 @@ def _quit():
 
 
 def ImportData():
+    global allMissionBigDict
     everyTypeContaionsPage[0].append(0)
+    smallMissionType.append(everyTypeContaionsPage[0][0] + 1)
     allMissionBigDict[0][0] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
     with open(fileNmae, newline='',encoding='utf-8', 
         errors='ignore') as inputFile:
-        rows = csv.reader(fileNmae)
+        rows = csv.reader(inputFile)
         for index, row in enumerate(rows):
             if(len(row) < loadingDataLen and index == 0):
-                # print(allMissionBigDict[0][0])
-                # for x in range(len(allMissionBigDict[0][0])):
-                #     for y in range(len(allMissionBigDict[0][0][0])):
-                #         print(hex(id(allMissionBigDict[0][0][x][y])))
                 break
-            print("Not break")
-            if row[4] not in everyTypeContaionsPage[row[2]]:
-                everyTypeContaionsPage[row[2]].append(row[4])
-                allMissionBigDict[row[2]][row[4]] = [[None * CONSTGridCol]]*CONSTGridRow
-            tmpData = SingleMission((row[5] % CONSTGridCol) - 1,(row[5] / CONSTGridCol) - 1)
-            tmpData.Data.boxType = row[6]
-            tmpData.Data.lineType = row[7]
-            tmpData.Data.name = row[8]
-            tmpData.Data.moveSignObj = row[9]
-            tmpData.Data.staticSignObj = row[10]
-            tmpData.Data.missionPre1Obj = row[11]
-            tmpData.Data.missionPre2Obj = row[12]
-            tmpData.Data.missionPre3Obj = row[13]
-            tmpData.Data.missionNeedLevelObj = row[14]
-            tmpData.Data.missionSceneIDObj = row[15]
-            tmpData.Data.missionTeacherNameBeginObj = row[16]
-            tmpData.Data.missionTeacherXObj = row[17]
-            tmpData.Data.missionTeacherYObj = row[18]
-            tmpData.Data.missionSpecialItemObj = row[19]
-            tmpData.Data.missionSpecialDesObj = row[20]
-            print("{0},{1} Add Data".format(tmpData.posRow, tmpData.posCol))
-            allMissionBigDict[row[2]][row[4]][tmpData.posRow][tmpData.posCol] = tmpData
+            if int(row[4]) not in everyTypeContaionsPage[int(row[2])]:
+                everyTypeContaionsPage[int(row[2])].append(row[4])
+                allMissionBigDict[int(row[2])][int(row[4])] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)]
+                print("Auto create newPage")
+            loadRow = math.floor((int(row[5]) / CONSTGridCol))
+            loadCol = math.floor((int(row[5]) % CONSTGridCol) - 1)
+            allMissionBigDict[int(row[2])][int(row[4])][loadRow][loadCol] = SingleMission(
+                loadRow,
+                loadCol
+                )
+            tmpData = allMissionBigDict[int(row[2])][int(row[4])][loadRow][loadCol]
+
+            tmpData.Data[MissionEditorIndex.boxPos] = int(row[5])
+            tmpData.Data[MissionEditorIndex.boxType] = int(row[6])
+            tmpData.Data[MissionEditorIndex.lineType] = int(row[7])
+            tmpData.Data[MissionEditorIndex.name] = str(row[8])
+            tmpData.Data[MissionEditorIndex.moveSignObj] = int(row[9])
+            tmpData.Data[MissionEditorIndex.staticSignObj] = int(row[10])
+            tmpData.Data[MissionEditorIndex.missionPre1Obj] = int(row[11])
+            tmpData.Data[MissionEditorIndex.missionPre2Obj] = int(row[12])
+            tmpData.Data[MissionEditorIndex.missionPre3Obj] = int(row[13])
+            tmpData.Data[MissionEditorIndex.missionNeedLevelObj] = int(row[14])
+            tmpData.Data[MissionEditorIndex.missionSceneIDObj] = int(row[15])
+            tmpData.Data[MissionEditorIndex.missionTeacherNameBeginObj] = str(row[16])
+            tmpData.Data[MissionEditorIndex.missionTeacherXObj] = int(row[17])
+            tmpData.Data[MissionEditorIndex.missionTeacherYObj] = int(row[18])
+            tmpData.Data[MissionEditorIndex.missionSpecialItemObj] = str(row[19])
+            tmpData.Data[MissionEditorIndex.missionSpecialDesObj] = str(row[20])
+            print("{2}:{3} - {0},{1} Add Data".format(tmpData.posRow, tmpData.posCol,
+                    row[2],row[4]
+                ))
 
 
 def ExportData():
@@ -586,30 +554,30 @@ def ExportData():
             for Skey, Sdata in Bdata.items():
                 for i in range(len(Sdata)):
                     for j in range(len(Sdata[0])):
-                        print(Sdata[i][j].Data)
-                        if Sdata[i][j].Data.boxType != 0:                      
+                        if Sdata[i][j].Data[MissionEditorIndex.boxType] != 0: 
+                            # print(Sdata[i][j].Data)                     
                             writer.writerow([
                                 exportIDHead,
                                 1,
                                 Bkey,
                                 nowPageStype,
                                 Skey,
-                                ((i)*7)+(j+1),
-                                Sdata[i][j].Data.boxType,
-                                Sdata[i][j].Data.lineType,
-                                Sdata[i][j].Data.name,
-                                Sdata[i][j].Data.moveSignObj,
-                                Sdata[i][j].Data.staticSignObj,
-                                Sdata[i][j].Data.missionPre1Obj,
-                                Sdata[i][j].Data.missionPre2Obj,
-                                Sdata[i][j].Data.missionPre3Obj,
-                                Sdata[i][j].Data.missionNeedLevelObj,
-                                Sdata[i][j].Data.missionSceneIDObj,
-                                Sdata[i][j].Data.missionTeacherNameBeginObj,
-                                Sdata[i][j].Data.missionTeacherXObj,
-                                Sdata[i][j].Data.missionTeacherYObj,
-                                Sdata[i][j].Data.missionSpecialItemObj,
-                                Sdata[i][j].Data.missionSpecialDesObj
+                                Sdata[i][j].Data[MissionEditorIndex.boxPos],
+                                Sdata[i][j].Data[MissionEditorIndex.boxType],
+                                Sdata[i][j].Data[MissionEditorIndex.lineType],
+                                Sdata[i][j].Data[MissionEditorIndex.name],
+                                Sdata[i][j].Data[MissionEditorIndex.moveSignObj],
+                                Sdata[i][j].Data[MissionEditorIndex.staticSignObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionPre1Obj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionPre2Obj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionPre3Obj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionNeedLevelObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionSceneIDObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionTeacherNameBeginObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionTeacherXObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionTeacherYObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionSpecialItemObj],
+                                Sdata[i][j].Data[MissionEditorIndex.missionSpecialDesObj]
                             ])
                         exportIDHead += 1
 
@@ -636,6 +604,7 @@ menu_bar.add_cascade(label="Help", menu=help_menu)
 DeclareVar()
 ImportData()
 GentGridPanel()
+GenPageSelectPanel()
 # ======================
 
 
