@@ -48,6 +48,7 @@ missionEditorText = [
     "資料型式",
     "Line樣式",
     "任務名稱",
+    "任務字串ID",
     "動標",
     "永標",
     "前置任務索引1",
@@ -58,8 +59,8 @@ missionEditorText = [
     "起始NPC",
     "所在座標X",
     "所在座標Y",
-    "特殊獎勵",
-    "特殊說明"
+    "特殊獎勵ID",
+    "特殊說明ID"
 ]
 
 class MissionEditorIndex (IntEnum):
@@ -67,18 +68,19 @@ class MissionEditorIndex (IntEnum):
     boxType = 1,
     lineType = 2,
     name = 3,
-    moveSignObj = 4,
-    staticSignObj = 5,
-    missionPre1Obj = 6,
-    missionPre2Obj = 7,
-    missionPre3Obj = 8,
-    missionNeedLevelObj = 9,
-    missionSceneIDObj = 10,
-    missionTeacherNameBeginObj = 11,
-    missionTeacherXObj = 12,
-    missionTeacherYObj = 13,
-    missionSpecialItemObj = 14,
-    missionSpecialDesObj = 15
+    nameID = 4,
+    moveSignObj = 5,
+    staticSignObj = 6,
+    missionPre1Obj = 7,
+    missionPre2Obj = 8,
+    missionPre3Obj = 9,
+    missionNeedLevelObj = 10,
+    missionSceneIDObj = 11,
+    missionTeacherNameBeginObj = 12,
+    missionTeacherXObj = 13,
+    missionTeacherYObj = 14,
+    missionSpecialItemObj = 15,
+    missionSpecialDesObj = 16
 
 
 CONSTEditorNumber = len(missionEditorText)
@@ -96,7 +98,7 @@ nowSmallPageNumber = 0
 
 missionList = []
 
-exportIDHead = 0
+exportIDHead = 1
 nowPageStype = 2
 
 
@@ -105,7 +107,7 @@ def DeclareVar():
     global nowPageStype
     global allMissionBigDict
     global everyTypeContaionsPage
-    exportIDHead = 0
+    exportIDHead = 1
     nowPageStype = 2
     allMissionBigDict = [{} for y in range(CONSTGPageNumber)]
     everyTypeContaionsPage = [[] for y in range(CONSTGPageNumber)]
@@ -116,7 +118,6 @@ def SaveSetting():
         tmpdata[x] = missionEditorVar[x].get()
     tmpBox = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol]
     if(tmpdata[MissionEditorIndex.name] != ""):
-        print(tmpdata[MissionEditorIndex.boxType])
         if(tmpdata[MissionEditorIndex.boxType] == 0):
             tmpdata[MissionEditorIndex.boxType] = 1
         if(tmpdata[MissionEditorIndex.boxType] == 2):
@@ -142,7 +143,7 @@ class SingleMission(object):
     Data = None
 
     def __init__(self, row, col):
-        self.Data = [ 0,0,0,"",1,2,3,4,5,6,7,"",8,9,"預設道具","預設描述"]
+        self.Data = [ 0,0,0,"",0,1,2,3,4,5,6,7,8,9,10,11,12]
         self.posCol = col
         self.posRow = row
         self.Data[0] = ((self.posRow * 7) + (self.posCol + 1))
@@ -250,15 +251,17 @@ def SetLabelBKHighLight(row, col):
 # 任務預覽
 def GentGridPanel():
     global allMissionBigDict
+    global nowBigPageNumber
+    global nowSmallPageNumber
     tmpDict = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
+    print (nowBigPageNumber)
+    print (nowSmallPageNumber)
     # for data in tmpDict:
     for x in range(CONSTGridRow):
         if(tmpDict[x] == None):
             print("X is Empty")
             tmpDict[x] = []
         for y in range(CONSTGridCol):
-            if(y == 2 and x == 1):
-                print(tmpDict[x][y])
             if(tmpDict[x][y]==None):
                 tmpDict[x][y] = SingleMission(x, y)
             missionBK = tk.Label(mighty,
@@ -293,7 +296,7 @@ for x in range(CONSTEditorNumber):
         ttk.Label(missionEditor, text=missionEditorText[x], font=desfont)
         )
     missionEditorLabel[x].grid(column=0, row=x)
-    if( x == 3 or x == 11 or x == 14 or x == 15):
+    if( x == 3 ):
         missionEditorVar.append(tk.StringVar())
     else:
         missionEditorVar.append(tk.IntVar())
@@ -426,12 +429,15 @@ def GenPageSelectPanel ():
     missionSmaillTypeDropdown['values'] = smallMissionType
     missionSmaillTypeDropdown.current(0)
     missionSmaillTypeDropdown.config(width=12)
-    missionSmaillTypeDropdown.bind("<<ComboboxSelected>>", ChangeBigType)
+    missionSmaillTypeDropdown.bind("<<ComboboxSelected>>", ChangeSmallType)
     missionSmaillTypeDropdown.grid(column=1, row=1, sticky="n")
     # ======================
 
 def ChangeBigType(event):
     global missionBigTypeDropdown
+    global mighty
+    global nowBigPageNumber
+    global nowSmallPageNumber
     nowNumber = bigMissionType.index(missionBigTypeDropdown.get())
     nowBigPageNumber = nowNumber
     if(len(everyTypeContaionsPage[nowBigPageNumber]) > 0):
@@ -441,11 +447,23 @@ def ChangeBigType(event):
     if(allMissionBigDict[nowBigPageNumber][nowSmallPageNumber] == None):
         allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]=[[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
     mighty.destroy()
+    mighty = ttk.LabelFrame(tab1, text=' 任務預覽 ')
+    mighty.grid(column=0, row=0)
     GentGridPanel()
-    # allMissionBigDict
-    # everyTypeContaionsPage
-    # [nowBigPageNumber][nowSmallPageNumber]
 
+def ChangeSmallType(event):
+    global missionSmaillTypeDropdown
+    global mighty
+    global nowBigPageNumber
+    global nowSmallPageNumber
+    nowNumber = int(missionSmaillTypeDropdown.get())
+    nowSmallPageNumber = nowNumber - 1
+    if(nowSmallPageNumber not in allMissionBigDict[nowBigPageNumber]):
+        allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]=[[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
+    mighty.destroy()
+    mighty = ttk.LabelFrame(tab1, text=' 任務預覽 ')
+    mighty.grid(column=0, row=0)
+    GentGridPanel()
 # ======================
 # 新增小頁籤按鈕
 
@@ -502,52 +520,53 @@ def _quit():
 
 
 def ImportData():
+    open(fileNmae, 'a').close()
     global allMissionBigDict
     everyTypeContaionsPage[0].append(0)
     smallMissionType.append(everyTypeContaionsPage[0][0] + 1)
     allMissionBigDict[0][0] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
-    with open(fileNmae, newline='',encoding='utf-8', 
+    with open(fileNmae, newline='',encoding='utf-8-sig', 
         errors='ignore') as inputFile:
         rows = csv.reader(inputFile)
         for index, row in enumerate(rows):
             if(len(row) < loadingDataLen and index == 0):
                 break
-            if int(row[4]) not in everyTypeContaionsPage[int(row[2])]:
-                everyTypeContaionsPage[int(row[2])].append(row[4])
-                allMissionBigDict[int(row[2])][int(row[4])] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)]
-                print("Auto create newPage")
-            loadRow = math.floor((int(row[5]) / CONSTGridCol))
-            loadCol = math.floor((int(row[5]) % CONSTGridCol) - 1)
-            allMissionBigDict[int(row[2])][int(row[4])][loadRow][loadCol] = SingleMission(
+            if int(row[5]) not in everyTypeContaionsPage[int(row[3])]:
+                everyTypeContaionsPage[int(row[3])].append(row[5])
+                allMissionBigDict[int(row[3])][int(row[5])] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)]
+            loadRow = math.floor((int(row[6]) / CONSTGridCol))
+            loadCol = math.floor((int(row[6]) % CONSTGridCol) - 1)
+            allMissionBigDict[int(row[3])][int(row[5])][loadRow][loadCol] = SingleMission(
                 loadRow,
                 loadCol
                 )
-            tmpData = allMissionBigDict[int(row[2])][int(row[4])][loadRow][loadCol]
+            tmpData = allMissionBigDict[int(row[3])][int(row[5])][loadRow][loadCol]
 
-            tmpData.Data[MissionEditorIndex.boxPos] = int(row[5])
-            tmpData.Data[MissionEditorIndex.boxType] = int(row[6])
-            tmpData.Data[MissionEditorIndex.lineType] = int(row[7])
-            tmpData.Data[MissionEditorIndex.name] = str(row[8])
-            tmpData.Data[MissionEditorIndex.moveSignObj] = int(row[9])
-            tmpData.Data[MissionEditorIndex.staticSignObj] = int(row[10])
-            tmpData.Data[MissionEditorIndex.missionPre1Obj] = int(row[11])
-            tmpData.Data[MissionEditorIndex.missionPre2Obj] = int(row[12])
-            tmpData.Data[MissionEditorIndex.missionPre3Obj] = int(row[13])
-            tmpData.Data[MissionEditorIndex.missionNeedLevelObj] = int(row[14])
-            tmpData.Data[MissionEditorIndex.missionSceneIDObj] = int(row[15])
-            tmpData.Data[MissionEditorIndex.missionTeacherNameBeginObj] = str(row[16])
-            tmpData.Data[MissionEditorIndex.missionTeacherXObj] = int(row[17])
-            tmpData.Data[MissionEditorIndex.missionTeacherYObj] = int(row[18])
-            tmpData.Data[MissionEditorIndex.missionSpecialItemObj] = str(row[19])
-            tmpData.Data[MissionEditorIndex.missionSpecialDesObj] = str(row[20])
+            tmpData.Data[MissionEditorIndex.name] = str(row[0])
+            tmpData.Data[MissionEditorIndex.boxPos] = int(row[6])
+            tmpData.Data[MissionEditorIndex.boxType] = int(row[7])
+            tmpData.Data[MissionEditorIndex.lineType] = int(row[8])
+            tmpData.Data[MissionEditorIndex.nameID] = int(row[9])
+            tmpData.Data[MissionEditorIndex.moveSignObj] = int(row[10])
+            tmpData.Data[MissionEditorIndex.staticSignObj] = int(row[11])
+            tmpData.Data[MissionEditorIndex.missionPre1Obj] = int(row[12])
+            tmpData.Data[MissionEditorIndex.missionPre2Obj] = int(row[13])
+            tmpData.Data[MissionEditorIndex.missionPre3Obj] = int(row[14])
+            tmpData.Data[MissionEditorIndex.missionNeedLevelObj] = int(row[15])
+            tmpData.Data[MissionEditorIndex.missionSceneIDObj] = int(row[16])
+            tmpData.Data[MissionEditorIndex.missionTeacherNameBeginObj] = str(row[17])
+            tmpData.Data[MissionEditorIndex.missionTeacherXObj] = int(row[18])
+            tmpData.Data[MissionEditorIndex.missionTeacherYObj] = int(row[19])
+            tmpData.Data[MissionEditorIndex.missionSpecialItemObj] = str(row[20])
+            tmpData.Data[MissionEditorIndex.missionSpecialDesObj] = str(row[21])
             print("{2}:{3} - {0},{1} Add Data".format(tmpData.posRow, tmpData.posCol,
-                    row[2],row[4]
+                    row[3],row[5]
                 ))
 
 
 def ExportData():
     global exportIDHead
-    with open(fileNmae, "w", newline='',encoding='utf-8', 
+    with open(fileNmae, "w", newline='',encoding='utf-8-sig', 
         errors='ignore') as outputFile:
         writer = csv.writer(outputFile)
         for Bkey, Bdata in enumerate(allMissionBigDict):
@@ -557,15 +576,16 @@ def ExportData():
                         if Sdata[i][j].Data[MissionEditorIndex.boxType] != 0: 
                             # print(Sdata[i][j].Data)                     
                             writer.writerow([
-                                exportIDHead,
+                                Sdata[i][j].Data[MissionEditorIndex.name],
                                 1,
+                                exportIDHead,
                                 Bkey,
                                 nowPageStype,
                                 Skey,
                                 Sdata[i][j].Data[MissionEditorIndex.boxPos],
                                 Sdata[i][j].Data[MissionEditorIndex.boxType],
                                 Sdata[i][j].Data[MissionEditorIndex.lineType],
-                                Sdata[i][j].Data[MissionEditorIndex.name],
+                                Sdata[i][j].Data[MissionEditorIndex.nameID],
                                 Sdata[i][j].Data[MissionEditorIndex.moveSignObj],
                                 Sdata[i][j].Data[MissionEditorIndex.staticSignObj],
                                 Sdata[i][j].Data[MissionEditorIndex.missionPre1Obj],
@@ -579,7 +599,7 @@ def ExportData():
                                 Sdata[i][j].Data[MissionEditorIndex.missionSpecialItemObj],
                                 Sdata[i][j].Data[MissionEditorIndex.missionSpecialDesObj]
                             ])
-                        exportIDHead += 1
+                            exportIDHead += 1
 
 
 # Creating a Menu Bar
