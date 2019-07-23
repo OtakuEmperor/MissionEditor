@@ -18,7 +18,7 @@ bkfont = 'Courier\ New 8 bold'
 fileNmae = 'MissionTree.csv'
 bkFileName = 'MissionTree'
 
-CONSTGridCol = 7
+CONSTGridCol = 5
 CONSTGridRow = 14
 CONSTGPageNumber = 9
 
@@ -99,8 +99,12 @@ nowSmallPageNumber = 0
 missionList = []
 
 exportIDHead = 1
-nowPageStype = 2
+nowPageStype = 1
 
+
+def ChangePanelType( number ):
+    global CONSTGridCol
+    CONSTGridCol = number
 
 def DeclareVar():
     global exportIDHead
@@ -108,7 +112,7 @@ def DeclareVar():
     global allMissionBigDict
     global everyTypeContaionsPage
     exportIDHead = 1
-    nowPageStype = 2
+    nowPageStype = 1
     allMissionBigDict = [{} for y in range(CONSTGPageNumber)]
     everyTypeContaionsPage = [[] for y in range(CONSTGPageNumber)]
 
@@ -146,7 +150,7 @@ class SingleMission(object):
         self.Data = [ 0,0,0,"",0,1,2,3,4,5,6,7,8,9,10,11,12]
         self.posCol = col
         self.posRow = row
-        self.Data[0] = ((self.posRow * 7) + (self.posCol + 1))
+        self.Data[0] = ((self.posRow * CONSTGridCol) + (self.posCol + 1))
         # super(SingleMission, self).__init__()
 
     def SetLineType(self, lineType):
@@ -438,13 +442,18 @@ def ChangeBigType(event):
     global mighty
     global nowBigPageNumber
     global nowSmallPageNumber
+    global CONSTGridCol
     nowNumber = bigMissionType.index(missionBigTypeDropdown.get())
     nowBigPageNumber = nowNumber
+    if(nowBigPageNumber == 0):
+        CONSTGridCol = 5
+    else:
+        CONSTGridCol = 7
     if(len(everyTypeContaionsPage[nowBigPageNumber]) > 0):
         nowSmallPageNumber = everyTypeContaionsPage[nowBigPageNumber][0]
     else:
         nowSmallPageNumber = 0
-    if(allMissionBigDict[nowBigPageNumber][nowSmallPageNumber] == None):
+    if(nowSmallPageNumber not in allMissionBigDict[nowBigPageNumber]):
         allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]=[[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)] 
     mighty.destroy()
     mighty = ttk.LabelFrame(tab1, text=' 任務預覽 ')
@@ -570,6 +579,10 @@ def ExportData():
         errors='ignore') as outputFile:
         writer = csv.writer(outputFile)
         for Bkey, Bdata in enumerate(allMissionBigDict):
+            if(Bkey == 0):
+                nowPageStype = 1
+            else:
+                nowPageStype = 2
             for Skey, Sdata in Bdata.items():
                 for i in range(len(Sdata)):
                     for j in range(len(Sdata[0])):
