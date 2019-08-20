@@ -137,6 +137,37 @@ def SaveSetting():
         else:
             tmpBox.UIText['text'] = tmpdata[MissionEditorIndex.nam]
 
+class LineFormatData(object):
+    pos = None
+    def __init__(self):
+        self.pos = ['','　　','','　　','','']
+    def GetFinalLine(self):
+        return '{0}\n{1}{2}{3}\n{4}\n{5}'.format(self.pos[0],self.pos[1],self.pos[2],
+            self.pos[3],self.pos[4],self.pos[5]
+            )
+    def AddMainPos (self,lineType):
+        if( lineType == 1):
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+        if( lineType == 2):
+            self.pos[1] = '＿＿'
+        if( lineType == 3):
+            self.pos[0] = '│'
+            self.pos[2] = '│'
+        if( lineType == 4):
+            self.pos[3] = '＿＿'
+    def AddSubPos (self,lineType):
+        if( lineType == 1):
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+        if( lineType == 2):
+            self.pos[1] = '＿＿'
+        if( lineType == 3):
+            self.pos[0] = '│'
+            self.pos[2] = '│'
+        if( lineType == 4):
+            self.pos[3] = '＿＿'
+
 
 class SingleMission(object):
 
@@ -160,7 +191,8 @@ class SingleMission(object):
             self.Data[MissionEditorIndex.boxType] = 3
         self.Data[MissionEditorIndex.lineType]  = lineType
         if(lineType == 1):
-            self.UILabel.config(text="│\n│\n", fg="white")
+            self.UILabel.config(text="│\n＿＿│　　\n│\n│", fg="white")
+            #self.UILabel.config(text="│\n│\n", fg="white")
         if(lineType == 3):
             self.UILabel.config(text="\n\n│\n│", fg="white")
         if(lineType == 4):
