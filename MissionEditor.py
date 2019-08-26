@@ -22,7 +22,7 @@ CONSTGridCol = 5
 CONSTGridRow = 14
 CONSTGPageNumber = 9
 
-loadingDataLen = 21
+loadingDataLen = 18
 
 # 每一個分頁所含的頁數
 
@@ -51,9 +51,6 @@ missionEditorText = [
     "任務字串ID",
     "動標",
     "永標",
-    "前置任務索引1",
-    "前置任務索引2",
-    "前置任務索引3",
     "所需等級",
     "起始地圖",
     "起始NPC",
@@ -71,16 +68,13 @@ class MissionEditorIndex (IntEnum):
     nameID = 4,
     moveSignObj = 5,
     staticSignObj = 6,
-    missionPre1Obj = 7,
-    missionPre2Obj = 8,
-    missionPre3Obj = 9,
-    missionNeedLevelObj = 10,
-    missionSceneIDObj = 11,
-    missionTeacherNameBeginObj = 12,
-    missionTeacherXObj = 13,
-    missionTeacherYObj = 14,
-    missionSpecialItemObj = 15,
-    missionSpecialDesObj = 16
+    missionNeedLevelObj = 7,
+    missionSceneIDObj = 8,
+    missionTeacherNameBeginObj = 9,
+    missionTeacherXObj = 10,
+    missionTeacherYObj = 11,
+    missionSpecialItemObj = 12,
+    missionSpecialDesObj = 13
 
 
 CONSTEditorNumber = len(missionEditorText)
@@ -117,6 +111,7 @@ def DeclareVar():
     everyTypeContaionsPage = [[] for y in range(CONSTGPageNumber)]
 
 def SaveSetting():
+    global allMissionBigDict
     tmpdata = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber][nowSelectRow][nowSelectCol].Data
     for x in range(CONSTEditorNumber):
         tmpdata[x] = missionEditorVar[x].get()
@@ -138,6 +133,9 @@ def SaveSetting():
             tmpBox.UIText['text'] = tmpdata[MissionEditorIndex.nam]
 
 class LineFormatData(object):
+    global CONSTGridCol
+    global CONSTGridRow
+    global allMissionBigDict
     pos = None
     def __init__(self):
         self.pos = ['','　　','','　　','','']
@@ -145,28 +143,196 @@ class LineFormatData(object):
         return '{0}\n{1}{2}{3}\n{4}\n{5}'.format(self.pos[0],self.pos[1],self.pos[2],
             self.pos[3],self.pos[4],self.pos[5]
             )
+    
+    def AddLine( self, lineType, row, col):
+        nowSubLinePar = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
+        if( lineType < 13):
+            self.AddMainPos(lineType)
+            sublineCanSetAy = self.CheckIndexInRange(row,col,lineType)
+            sublineAy = self.GetSubIndex(row,col,lineType)
+            if type(sublineCanSetAy) == type(""):
+                if(sublineCanSetAy == "True"):
+                    nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.AddMainPos(int(sublineAy[2]))
+                    nowSubLinePar[sublineAy[0]][sublineAy[1]].UILabel.config(text =nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.GetFinalLine(),fg="white")
+            else:
+                for idx, bol in enumerate(sublineCanSetAy):
+                    if bol == "True":
+                        if idx == 0:
+                            print("idx1")
+                            nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.AddMainPos(sublineAy[2])
+                            nowSubLinePar[sublineAy[0]][sublineAy[1]].UILabel.config(text =nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 1:
+                            print("idx2")
+                            nowSubLinePar[sublineAy[3]][sublineAy[4]].LineFormat.AddMainPos(sublineAy[5])
+                            nowSubLinePar[sublineAy[3]][sublineAy[4]].UILabel.config(text =nowSubLinePar[sublineAy[3]][sublineAy[4]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 2:
+                            print("idx3")
+                            nowSubLinePar[sublineAy[6]][sublineAy[7]].LineFormat.AddMainPos(sublineAy[8])
+                            nowSubLinePar[sublineAy[6]][sublineAy[7]].UILabel.config(text =nowSubLinePar[sublineAy[6]][sublineAy[7]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 3:
+                            print("idx4")
+                            nowSubLinePar[sublineAy[9]][sublineAy[10]].LineFormat.AddMainPos(sublineAy[11])
+                            nowSubLinePar[sublineAy[9]][sublineAy[10]].UILabel.config(text =nowSubLinePar[sublineAy[9]][sublineAy[10]].LineFormat.GetFinalLine(),fg="white")
+                
+                
+    def DelLine( self, lineType, row, col):
+        nowSubLinePar = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
+        if( lineType < 13):
+            self.DelMainLine(lineType)
+            sublineCanSetAy = self.CheckIndexInRange(row,col,lineType)
+            sublineAy = self.GetSubIndex(row,col,lineType)
+            if type(sublineCanSetAy) == type(""):
+                if(sublineCanSetAy == "True"):
+                    nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.DelMainLine(sublineAy[2])
+                    nowSubLinePar[sublineAy[0]][sublineAy[1]].UILabel.config(text =nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.GetFinalLine(),fg="white")
+            else:
+                for idx, bol in enumerate(sublineCanSetAy):
+                    if bol == "True":
+                        if idx == 0:
+                            nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.DelMainLine(sublineAy[2])
+                            nowSubLinePar[sublineAy[0]][sublineAy[1]].UILabel.config(text =nowSubLinePar[sublineAy[0]][sublineAy[1]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 1:
+                            nowSubLinePar[sublineAy[3]][sublineAy[4]].LineFormat.DelMainLine(sublineAy[5])
+                            nowSubLinePar[sublineAy[3]][sublineAy[4]].UILabel.config(text =nowSubLinePar[sublineAy[3]][sublineAy[4]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 2:
+                            nowSubLinePar[sublineAy[6]][sublineAy[7]].LineFormat.DelMainLine(sublineAy[8])
+                            nowSubLinePar[sublineAy[6]][sublineAy[7]].UILabel.config(text =nowSubLinePar[sublineAy[6]][sublineAy[7]].LineFormat.GetFinalLine(),fg="white")
+                        if idx == 3:
+                            nowSubLinePar[sublineAy[9]][sublineAy[10]].LineFormat.DelMainLine(sublineAy[11])
+                            nowSubLinePar[sublineAy[9]][sublineAy[10]].UILabel.config(text =nowSubLinePar[sublineAy[9]][sublineAy[10]].LineFormat.GetFinalLine(),fg="white")
+    
+    def DelMainLine( self, lineType ):
+        if( lineType == 1):
+            self.pos[0] = ''
+            self.pos[2] = ''
+        if( lineType == 2):
+            self.pos[3] = '　　'
+        if( lineType == 3):
+            self.pos[4] = ''
+            self.pos[5] = ''
+        if( lineType == 4):
+            self.pos[1] = '　　'
+        if( lineType == 5):
+            self.pos[0] = ''
+            self.pos[2] = ''
+            self.pos[3] = '　　'
+        if( lineType == 6):
+            self.pos[3] = '　　'
+            self.pos[4] = ''
+            self.pos[5] = ''
+        if( lineType == 7):
+            self.pos[4] = ''
+            self.pos[5] = ''
+            self.pos[1] = '　　'
+        if( lineType == 8):
+            self.pos[0] = ''
+            self.pos[2] = ''
+            self.pos[1] = '　　'
+        if( lineType == 9):
+            self.pos[4] = ''
+            self.pos[5] = ''
+            self.pos[0] = ''
+            self.pos[2] = ''
+        if( lineType == 10):
+            self.pos[1] = '　　'
+            self.pos[3] = '　　'
+        if( lineType == 11):
+            self.pos[4] = ''
+            self.pos[5] = ''
+            self.pos[0] = ''
+            self.pos[2] = ''
+            self.pos[1] = '　　'
+            self.pos[3] = '　　'
+    def CheckIndexInRange ( self, row, col, lineType):
+        if( lineType == 1):
+            return str( row - 1 > 0)
+        if( lineType == 2):
+            return str( col + 1 < CONSTGridCol)
+        if( lineType == 3):
+            return str( row + 1 < CONSTGridRow)
+        if( lineType == 4):
+            return str( col - 1 > 0)
+        if( lineType == 5):
+            return str( row - 1 > 0),str( col + 1 < CONSTGridCol)
+        if( lineType == 6):
+            return str( col + 1 < CONSTGridCol),str( row + 1 < CONSTGridRow)
+        if( lineType == 7):
+            return str( row + 1 < CONSTGridRow),str( col - 1 > 0)
+        if( lineType == 8):
+            return str( row - 1 > 0),str( col - 1 > 0)
+        if( lineType == 9):
+            return str( row - 1 > 0), str( row + 1 < CONSTGridRow)
+        if( lineType == 10):
+            return str( col + 1 < CONSTGridCol), str( col - 1 > 0)
+        if( lineType == 11):
+            return str( row - 1 > 0), str( col + 1 < CONSTGridCol), str( row + 1 < CONSTGridRow), str( col - 1 > 0)
+
+    def GetSubIndex ( self, row, col, lineType):
+        if( lineType == 1):
+            return ( row - 1 ) , col , 3
+        if( lineType == 2):
+            return row, ( col + 1 ), 4
+        if( lineType == 3):
+            return ( row + 1 ) , col , 1
+        if( lineType == 4):
+            return row, ( col - 1 ), 2
+        if( lineType == 5):
+            return ( row - 1 ),col, 3, row, ( col + 1 ),4
+        if( lineType == 6):
+            return row, ( col + 1 ), 4, ( row + 1 ), col, 1
+        if( lineType == 7):
+            return ( row + 1 ),col, 1, row, ( col - 1 ),2
+        if( lineType == 8):
+            return ( row - 1 ),col, 3, row, ( col - 1 ), 2
+        if( lineType == 9):
+            return ( row - 1 ),col, 3, ( row + 1 ), col, 1
+        if( lineType == 10):
+            return row, ( col + 1 ), 4, row, ( col - 1 ), 2
+        if( lineType == 11):
+            return ( row - 1 ),col, 3, row,  ( col + 1 ), 4, ( row + 1 ), col, 1, row,  ( col - 1 ), 2
+
     def AddMainPos (self,lineType):
         if( lineType == 1):
-            self.pos[4] = '│'
-            self.pos[5] = '│'
-        if( lineType == 2):
-            self.pos[1] = '＿＿'
-        if( lineType == 3):
             self.pos[0] = '│'
             self.pos[2] = '│'
-        if( lineType == 4):
+        if( lineType == 2):
             self.pos[3] = '＿＿'
-    def AddSubPos (self,lineType):
-        if( lineType == 1):
+        if( lineType == 3):
             self.pos[4] = '│'
             self.pos[5] = '│'
-        if( lineType == 2):
+        if( lineType == 4):
             self.pos[1] = '＿＿'
-        if( lineType == 3):
+        if( lineType == 5):
             self.pos[0] = '│'
             self.pos[2] = '│'
-        if( lineType == 4):
             self.pos[3] = '＿＿'
+        if( lineType == 6):
+            self.pos[3] = '＿＿'
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+        if( lineType == 7):
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+            self.pos[1] = '＿＿'
+        if( lineType == 8):
+            self.pos[0] = '│'
+            self.pos[2] = '│'
+            self.pos[1] = '＿＿'
+        if( lineType == 9):
+            self.pos[0] = '│'
+            self.pos[2] = '│'
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+        if( lineType == 10):
+            self.pos[3] = '＿＿'
+            self.pos[1] = '＿＿'
+        if( lineType == 11):
+            self.pos[0] = '│'
+            self.pos[2] = '│'
+            self.pos[4] = '│'
+            self.pos[5] = '│'
+            self.pos[3] = '＿＿'
+            self.pos[1] = '＿＿'
 
 
 class SingleMission(object):
@@ -176,12 +342,14 @@ class SingleMission(object):
     posRow = 0
     posCol = 0
     Data = None
+    LineFormat = None
 
     def __init__(self, row, col):
-        self.Data = [ 0,0,0,"",0,1,2,3,4,5,6,7,8,9,10,11,12]
+        self.Data = [ 0,0,0,"",0,0,0,0,0,0,0,0,0,0,0,0,0]
         self.posCol = col
         self.posRow = row
-        self.Data[0] = ((self.posRow * CONSTGridCol) + (self.posCol + 1))
+        self.Data[0] = ((self.posCol * CONSTGridRow) + (self.posRow + 1))
+        self.LineFormat = LineFormatData ()
         # super(SingleMission, self).__init__()
 
     def SetLineType(self, lineType):
@@ -189,35 +357,28 @@ class SingleMission(object):
             self.Data[MissionEditorIndex.boxType] = 2
         if(self.Data[MissionEditorIndex.boxType] == 1):
             self.Data[MissionEditorIndex.boxType] = 3
+        if(self.Data[MissionEditorIndex.lineType] != 0):
+            self.LineFormat.DelLine(self.Data[MissionEditorIndex.lineType], self.posRow, self.posCol)
+            self.UILabel.config(text =self.LineFormat.GetFinalLine(),fg="white")
         self.Data[MissionEditorIndex.lineType]  = lineType
-        if(lineType == 1):
-            self.UILabel.config(text="│\n＿＿│　　\n│\n│", fg="white")
-            #self.UILabel.config(text="│\n│\n", fg="white")
-        if(lineType == 3):
-            self.UILabel.config(text="\n\n│\n│", fg="white")
-        if(lineType == 4):
-            self.UILabel.config(text="\n＿＿     \n", fg="white")
-        if(lineType == 2):
-            self.UILabel.config(text="\n     ＿＿\n", fg="white")
+
+        self.LineFormat.AddLine(lineType, self.posRow, self.posCol)
+        self.UILabel.config(text =self.LineFormat.GetFinalLine(),fg="white")
         missionEditorVar[MissionEditorIndex.boxType].set(self.Data[MissionEditorIndex.boxType])
         missionEditorVar[MissionEditorIndex.lineType].set(self.Data[MissionEditorIndex.lineType])
         missionEditorDes[MissionEditorIndex.boxType]["text"] = self.Data[MissionEditorIndex.boxType]
-    # def SetData(self, dataInput):
-    #     self.Data.name = dataInput.name
-    #     self.Data.boxType = dataInput.boxType
-    #     self.Data.lineType = dataInput.lineType
-    #     self.Data.moveSignObj = dataInput.moveSignObj
-    #     self.Data.staticSignObj = dataInput.staticSignObj
-    #     self.Data.missionPre1Obj = dataInput.missionPre1Obj
-    #     self.Data.missionPre2Obj = dataInput.missionPre2Obj
-    #     self.Data.missionPre3Obj = dataInput.missionPre3Obj
-    #     self.Data.missionNeedLevelObj = dataInput.missionNeedLevelObj
-    #     self.Data.missionSceneIDObj = dataInput.missionSceneIDObj
-    #     self.Data.missionTeacherNameBeginObj = dataInput.missionTeacherNameBeginObj
-    #     self.Data.missionTeacherXObj = dataInput.missionTeacherXObj
-    #     self.Data.missionTeacherYObj = dataInput.missionTeacherYObj
-    #     self.Data.missionSpecialDesObj = dataInput.missionSpecialDesObj
 
+    def CleanLineType(self):
+        if(self.Data[MissionEditorIndex.boxType] == 2):
+            self.Data[MissionEditorIndex.boxType] = 0
+        if(self.Data[MissionEditorIndex.boxType] == 3):
+            self.Data[MissionEditorIndex.boxType] = 1
+        self.Data[MissionEditorIndex.lineType]  = 0
+        self.LineFormat.DelLine(lineType, self.posRow, self.posCol)
+        self.UILabel.config(text =self.LineFormat.GetFinalLine(),fg="white")
+        missionEditorVar[MissionEditorIndex.boxType].set(self.Data[MissionEditorIndex.boxType])
+        missionEditorVar[MissionEditorIndex.lineType].set(self.Data[MissionEditorIndex.lineType])
+        missionEditorDes[MissionEditorIndex.boxType]["text"] = self.Data[MissionEditorIndex.boxType]
 
 def _from_rgb(rgb):
     return "#%02x%02x%02x" % rgb
@@ -262,7 +423,6 @@ def ClickLabel(col, row):
         else:
             missionEditorVar[x].set(missionList[nowSelectRow][nowSelectCol].Data[x])
     SetLabelBKHighLight(row, col)
-    # print(missionList[nowSelectRow][nowSelectCol].UILabel.winfo_rootx())
 
 
 def ClickArrow(arrorLinetype):
@@ -274,14 +434,9 @@ def SetLabelBKHighLight(row, col):
     for i in range(len(missionList)):
         for j in range(len(missionList[i])):
             if(i == row and j == col):
-                # print(missionList[i][j].posRow)
-                # print(missionList[i][j].posCol)
-                # print(missionList[i][j].UILabel)
                 missionList[i][j].UILabel.config(bg="red")
             else:
                 missionList[i][j].UILabel.config(bg=_from_rgb((32, 100, 140)))
-                # missionList[i][j].UILabel.config(bg="red")
-
 
 # ======================
 # 任務預覽
@@ -290,8 +445,6 @@ def GentGridPanel():
     global nowBigPageNumber
     global nowSmallPageNumber
     tmpDict = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
-    print (nowBigPageNumber)
-    print (nowSmallPageNumber)
     # for data in tmpDict:
     for x in range(CONSTGridRow):
         if(tmpDict[x] == None):
@@ -299,9 +452,10 @@ def GentGridPanel():
             tmpDict[x] = []
         for y in range(CONSTGridCol):
             if(tmpDict[x][y]==None):
+                print("tmpDict[{0}][{1}] is empty".format(x, y))
                 tmpDict[x][y] = SingleMission(x, y)
             missionBK = tk.Label(mighty,
-                                text="{0},{1}".format(x,y),
+                                text="{0}".format(((y * CONSTGridRow) + (x + 1))),
                                  bg=_from_rgb((32, 100, 140)),
                                  width=10, height=3,
                                  borderwidth=2, relief="groove",
@@ -318,6 +472,8 @@ def GentGridPanel():
                                        width=2, height=1
                                        )
                 tmpDict[x][y].UIText.grid(row=x, column=y)
+    for x in range(CONSTGridRow):
+        for y in range(CONSTGridCol):
             if(tmpDict[x][y].Data[MissionEditorIndex.boxType] > 1 ):
                 tmpDict[x][y].SetLineType(tmpDict[x][y].Data[MissionEditorIndex.lineType])
 
@@ -381,49 +537,56 @@ leftButton.grid(column=3, row=0)
 upRightButton = ttk.Button(
     arrowButtonPanel,
     text='└',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(5)
 )
 upRightButton.grid(column=0, row=1)
 
 downRightButton = ttk.Button(
     arrowButtonPanel,
     text='┌',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(6)
 )
 downRightButton.grid(column=1, row=1)
 
 downLeftButton = ttk.Button(
     arrowButtonPanel,
     text='┐',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(7)
 )
 downLeftButton.grid(column=2, row=1)
 
 upLeftButton = ttk.Button(
     arrowButtonPanel,
     text='┘',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(8)
 )
 upLeftButton.grid(column=3, row=1)
 
 verticalButton = ttk.Button(
     arrowButtonPanel,
     text='│',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(9)
 )
 verticalButton.grid(column=0, row=2)
 
 horizontalButton = ttk.Button(
     arrowButtonPanel,
     text='—',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(10)
 )
 horizontalButton.grid(column=1, row=2)
 
 crossButton = ttk.Button(
     arrowButtonPanel,
     text='┼',
-    width=3
+    width=3,
+    command=lambda: ClickArrow(11)
 )
 crossButton.grid(column=2, row=2)
 
@@ -570,18 +733,20 @@ def ImportData():
         errors='ignore') as inputFile:
         rows = csv.reader(inputFile)
         for index, row in enumerate(rows):
+            big = int(row[3]) - 1
+            small = int(row[5]) - 1
             if(len(row) < loadingDataLen and index == 0):
                 break
-            if int(row[5]) not in everyTypeContaionsPage[int(row[3])]:
-                everyTypeContaionsPage[int(row[3])].append(row[5])
-                allMissionBigDict[int(row[3])][int(row[5])] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)]
-            loadRow = math.floor((int(row[6]) / CONSTGridCol))
-            loadCol = math.floor((int(row[6]) % CONSTGridCol) - 1)
-            allMissionBigDict[int(row[3])][int(row[5])][loadRow][loadCol] = SingleMission(
+            if int(small) not in everyTypeContaionsPage[int(big)]:
+                everyTypeContaionsPage[big].append(small)
+                allMissionBigDict[big][small] = [[None for x in range(CONSTGridCol)] for y in range(CONSTGridRow)]
+            loadRow = math.floor((int(row[6]) % CONSTGridRow) - 1)
+            loadCol = math.floor((int(row[6]) / CONSTGridRow) )
+            allMissionBigDict[big][small][loadRow][loadCol] = SingleMission(
                 loadRow,
                 loadCol
                 )
-            tmpData = allMissionBigDict[int(row[3])][int(row[5])][loadRow][loadCol]
+            tmpData = allMissionBigDict[big][small][loadRow][loadCol]
 
             tmpData.Data[MissionEditorIndex.name] = str(row[0])
             tmpData.Data[MissionEditorIndex.boxPos] = int(row[6])
@@ -590,18 +755,15 @@ def ImportData():
             tmpData.Data[MissionEditorIndex.nameID] = int(row[9])
             tmpData.Data[MissionEditorIndex.moveSignObj] = int(row[10])
             tmpData.Data[MissionEditorIndex.staticSignObj] = int(row[11])
-            tmpData.Data[MissionEditorIndex.missionPre1Obj] = int(row[12])
-            tmpData.Data[MissionEditorIndex.missionPre2Obj] = int(row[13])
-            tmpData.Data[MissionEditorIndex.missionPre3Obj] = int(row[14])
-            tmpData.Data[MissionEditorIndex.missionNeedLevelObj] = int(row[15])
-            tmpData.Data[MissionEditorIndex.missionSceneIDObj] = int(row[16])
-            tmpData.Data[MissionEditorIndex.missionTeacherNameBeginObj] = str(row[17])
-            tmpData.Data[MissionEditorIndex.missionTeacherXObj] = int(row[18])
-            tmpData.Data[MissionEditorIndex.missionTeacherYObj] = int(row[19])
-            tmpData.Data[MissionEditorIndex.missionSpecialItemObj] = str(row[20])
-            tmpData.Data[MissionEditorIndex.missionSpecialDesObj] = str(row[21])
+            tmpData.Data[MissionEditorIndex.missionNeedLevelObj] = int(row[12])
+            tmpData.Data[MissionEditorIndex.missionSceneIDObj] = int(row[13])
+            tmpData.Data[MissionEditorIndex.missionTeacherNameBeginObj] = str(row[14])
+            tmpData.Data[MissionEditorIndex.missionTeacherXObj] = int(row[15])
+            tmpData.Data[MissionEditorIndex.missionTeacherYObj] = int(row[16])
+            tmpData.Data[MissionEditorIndex.missionSpecialItemObj] = str(row[17])
+            tmpData.Data[MissionEditorIndex.missionSpecialDesObj] = str(row[18])
             print("{2}:{3} - {0},{1} Add Data".format(tmpData.posRow, tmpData.posCol,
-                    row[3],row[5]
+                    big,small
                 ))
 
 
@@ -618,24 +780,20 @@ def ExportData():
             for Skey, Sdata in Bdata.items():
                 for i in range(len(Sdata)):
                     for j in range(len(Sdata[0])):
-                        if Sdata[i][j].Data[MissionEditorIndex.boxType] != 0: 
-                            # print(Sdata[i][j].Data)                     
+                        if Sdata[i][j].Data[MissionEditorIndex.boxType] != 0:                   
                             writer.writerow([
                                 Sdata[i][j].Data[MissionEditorIndex.name],
                                 1,
                                 exportIDHead,
-                                Bkey,
+                                Bkey + 1,
                                 nowPageStype,
-                                Skey,
+                                Skey + 1,
                                 Sdata[i][j].Data[MissionEditorIndex.boxPos],
                                 Sdata[i][j].Data[MissionEditorIndex.boxType],
                                 Sdata[i][j].Data[MissionEditorIndex.lineType],
                                 Sdata[i][j].Data[MissionEditorIndex.nameID],
                                 Sdata[i][j].Data[MissionEditorIndex.moveSignObj],
                                 Sdata[i][j].Data[MissionEditorIndex.staticSignObj],
-                                Sdata[i][j].Data[MissionEditorIndex.missionPre1Obj],
-                                Sdata[i][j].Data[MissionEditorIndex.missionPre2Obj],
-                                Sdata[i][j].Data[MissionEditorIndex.missionPre3Obj],
                                 Sdata[i][j].Data[MissionEditorIndex.missionNeedLevelObj],
                                 Sdata[i][j].Data[MissionEditorIndex.missionSceneIDObj],
                                 Sdata[i][j].Data[MissionEditorIndex.missionTeacherNameBeginObj],
