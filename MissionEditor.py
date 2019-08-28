@@ -444,8 +444,13 @@ def GentGridPanel():
     global allMissionBigDict
     global nowBigPageNumber
     global nowSmallPageNumber
+    global CONSTGridCol
+    global CONSTGridRow
     tmpDict = allMissionBigDict[nowBigPageNumber][nowSmallPageNumber]
     # for data in tmpDict:
+    print("nowBigPageNumber" + str(nowBigPageNumber))
+    CheckNowColNumber()
+    print("CONSTGridCol" + str(CONSTGridCol))
     for x in range(CONSTGridRow):
         if(tmpDict[x] == None):
             print("X is Empty")
@@ -479,6 +484,15 @@ def GentGridPanel():
 
 # ======================
 
+def CheckNowColNumber ():
+    global nowBigPageNumber
+    global CONSTGridCol
+    if (nowBigPageNumber == 1):
+        CONSTGridCol = 5
+        print("Change5")
+    else:
+        CONSTGridCol = 7
+        print("Change7")
 
 missionEditor = ttk.LabelFrame(tab2, text=' 任務編輯 ')
 missionEditor.grid(column=0, row=0)
@@ -724,6 +738,10 @@ def _quit():
 
 
 def ImportData():
+    global CONSTGridCol
+    global CONSTGridRow
+    global nowBigPageNumber
+    nowBigPageNumber = 1
     open(fileNmae, 'a').close()
     global allMissionBigDict
     everyTypeContaionsPage[0].append(0)
@@ -735,6 +753,10 @@ def ImportData():
         for index, row in enumerate(rows):
             big = int(row[3]) - 1
             small = int(row[5]) - 1
+            if ( int(row[4]) == 1 ):
+                CONSTGridCol = 5
+            else:
+                CONSTGridCol = 7
             if(len(row) < loadingDataLen and index == 0):
                 break
             if int(small) not in everyTypeContaionsPage[int(big)]:
